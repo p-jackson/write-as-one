@@ -1,5 +1,7 @@
-import React, { PropTypes } from "react";
+import React, { PropTypes } from "react"
+import { compose, view } from "ramda"
 import ToggleButton from "../ToggleButton"
+import * as Document from "../../model/Document"
 import "./Toolbar.css"
 
 const blockStyles = [
@@ -15,7 +17,7 @@ const inlineStyles = [
 
 const Toolbar = ({ document, onChange }) => {
 
-  const editorState = document.getEditorState()
+  const editorState = view(Document.editorState, document)
   const currentInlineStyle = editorState.getCurrentInlineStyle()
   const selection = editorState.getSelection()
   const blockType = editorState
@@ -24,18 +26,15 @@ const Toolbar = ({ document, onChange }) => {
     .getType()
 
   const blockStyleButtons = blockStyles.map(({ blockStyle, label }) => {
-    const handleClick = () => onChange(document.toggleBlockType(blockStyle))
-    const handleMouseDown = e => {
-      e.preventDefault()
-    }
+    const handleClick = compose(onChange, Document.toggleBlockType(blockStyle))
 
     return (
       <ToggleButton
         className="Toolbar-button"
         isToggled={blockType === blockStyle}
         key={blockStyle}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
+        onClick={() => handleClick(document)}
+        onMouseDown={e => e.preventDefault()}
       >
         {label}
       </ToggleButton>
@@ -43,10 +42,7 @@ const Toolbar = ({ document, onChange }) => {
   })
 
   const inlineStyleButtons = inlineStyles.map(({ inlineStyle, label }) => {
-    const handleClick = () => onChange(document.toggleInlineStyle(inlineStyle))
-    const handleMouseDown = e => {
-      e.preventDefault()
-    }
+    const handleClick = compose(onChange, Document.toggleInlineStyle(inlineStyle))
 
     const isToggled = currentInlineStyle.has(inlineStyle)
     return (
@@ -54,8 +50,8 @@ const Toolbar = ({ document, onChange }) => {
         className="Toolbar-button"
         isToggled={isToggled}
         key={inlineStyle}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
+        onClick={() => handleClick(document)}
+        onMouseDown={e => e.preventDefault()}
       >
         {label}
       </ToggleButton>

@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './view/App';
 import './index.css';
-import { createInitialDocument, serialise, calcDelta } from "./model/Document"
+import { createInitialDocument, serialise } from "./model/Document"
+import { calcDelta } from "./model/Delta"
 
 let currentDocument = createInitialDocument()
 render(currentDocument)

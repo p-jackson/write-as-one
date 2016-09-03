@@ -1,53 +1,70 @@
 import { EditorState, RichUtils, convertToRaw, convertFromRaw } from "draft-js"
-import { curry } from "ramda"
-import {
-  BlockAdded,
-  BlockRemoved,
-  BlockTypeChanged,
-  TextAdded,
-  TextRemoved
-} from "./Changes"
+import { curry, compose, lensProp, view, set, __ as _ } from "ramda"
 
 
-export default class Document {
-  constructor(title, editorState) {
-    this.editorState = editorState
-    this.title = title
-  }
+const newDocument =
+  (title, editorState) => ({ title, editorState })
 
-  hasTitle() {
-    return !this.title
-  }
 
-  getTitle() {
-    return this.title
-  }
+const title =
+  lensProp("title")
 
-  setTitle(title) {
-    return new Document(title, this.editorState)
-  }
 
-  getEditorState() {
-    return this.editorState
-  }
+const editorState =
+  lensProp("editorState")
 
-  setEditorState(state) {
-    return new Document(this.title, state)
-  }
 
-  toggleInlineStyle(styleType) {
-    return new Document(
-      this.title,
-      RichUtils.toggleInlineStyle(this.editorState, styleType)
+const hasTitle =
+  compose(x => !!x, view(title))
+
+
+const draftToggleInlineStyles =
+  curry((inlineStyle, editorState) => RichUtils.toggleInlineStyle(editorState, inlineStyle))
+
+const toggleInlineStyle =
+  curry((style, doc) => compose(
+    set(editorState, _, doc),
+    draftToggleInlineStyles(style),
+    view(editorState)
+  )(doc))
+
+
+const draftToggleBlockType =
+  curry((blockType, editorState) => RichUtils.toggleBlockType(editorState, blockType))
+
+const toggleBlockType =
+  curry((type, doc) => compose(
+    set(editorState, _, doc),
+    draftToggleBlockType(type),
+    view(editorState)
+  )(doc))
+
+
+const deserialise =
+  str => {
+    const { content, title } = JSON.parse(str)
+    return newDocument(
+      title,
+      EditorState.createWithContent(convertFromRaw(content))
     )
   }
 
-  toggleBlockType(blockType) {
-    return new Document(
-      this.title,
-      RichUtils.toggleBlockType(this.editorState, blockType)
-    )
-  }
+
+const serialise =
+  doc => JSON.stringify({
+    content: convertToRaw(view(editorState, doc).getCurrentContent()),
+    title: view(title, doc)
+  })
+
+
+export {
+  title,
+  editorState,
+  hasTitle,
+  toggleBlockType,
+  toggleInlineStyle,
+  serialise,
+  deserialise,
 }
 
 
@@ -56,64 +73,5 @@ export function createInitialDocument() {
   if (raw)
     return deserialise(raw)
   else
-    return new Document(null, EditorState.createEmpty())
+    return newDocument(null, EditorState.createEmpty())
 }
-
-
-export function deserialise(str) {
-  const { content, title } = JSON.parse(str)
-  return new Document(
-    title,
-    EditorState.createWithContent(convertFromRaw(content))
-  )
-}
-
-
-export function serialise(doc) {
-  return JSON.stringify({
-    content: convertToRaw(doc.getEditorState().getCurrentContent()),
-    title: doc.getTitle()
-  })
-}
-
-
-export function calcDelta(prev, next) {
-  const changes = []
-  const prevContent = prev.getEditorState().getCurrentContent()
-  const nextContent = next.getEditorState().getCurrentContent()
-
-  // Find the block that's different
-  let index = -1
-  for (let key of prevContent.getBlockMap().keys()) {
-    index++
-    const prevBlock = prevContent.getBlockForKey(key)
-    const nextBlock = nextContent.getBlockForKey(key)
-    if (prevBlock !== nextBlock) {
-      if (!nextBlock)
-        changes.push(BlockRemoved(index))
-      else if (prevBlock.getLength() < nextBlock.getLength())
-        changes.push(TextAdded(index, prevBlock.getText(), nextBlock.getText()))
-      else if (prevBlock.getLength() > nextBlock.getLength())
-        changes.push(TextRemoved(index, prevBlock.getText(), nextBlock.getText()))
-      else if (prevBlock.getType() !== nextBlock.getType())
-        changes.push(BlockTypeChanged(index, nextBlock.getType()))
-    }
-  }
-
-  index = -1
-  for (let key of nextContent.getBlockMap().keys()) {
-    index++
-    if (!prevContent.getBlockForKey(key)) {
-      const newBlock = nextContent.getBlockForKey(key)
-      changes.push(BlockAdded(index, newBlock.getType(), newBlock.getText()))
-    }
-  }
-
-  return changes
-}
-
-
-const setEditorState = curry((document, state) => document.setEditorState(state))
-const setTitle = curry((document, title) => document.setTitle(title))
-
-export { setEditorState, setTitle }

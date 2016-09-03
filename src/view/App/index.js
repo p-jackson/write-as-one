@@ -3,19 +3,30 @@ import './App.css'
 import Editor from "../Editor"
 import Header from "../Header"
 import Toolbar from "../Toolbar"
-import { compose } from "ramda"
-import { setEditorState, setTitle } from "../../model/Document"
+import { compose, set, view, __ as _ } from "ramda"
+import * as Document from "../../model/Document"
+
 
 const App = ({ document, onDocumentChange }) => {
 
-  const handleEditorChange = compose(onDocumentChange, setEditorState(document))
-  const handleTitleChange = compose(onDocumentChange, setTitle(document))
+  const handleEditorChange = compose(
+    onDocumentChange,
+    set(Document.editorState, _, document)
+  )
+
+  const handleTitleChange = compose(
+    onDocumentChange,
+    set(Document.title, _, document)
+  )
+
+  const title = view(Document.title, document)
+  const editorState = view(Document.editorState, document)
 
   return (
     <div className="App">
-      <Header title={document.getTitle()} onChange={handleTitleChange} />
+      <Header title={title} onChange={handleTitleChange} />
       <Toolbar document={document} onChange={onDocumentChange} />
-      <Editor editorState={document.getEditorState()} onChange={handleEditorChange} />
+      <Editor editorState={editorState} onChange={handleEditorChange} />
     </div>
   )
 }
