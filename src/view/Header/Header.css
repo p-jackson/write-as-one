@@ -1,0 +1,33 @@
+.Header {
+  flex: 0 44px;
+  line-height: 44px;
+  padding: 0 1em;
+  background: #00558b;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+}
+
+.Header-appTitle {
+  font-weight: bold;
+  flex: 0 0 25%;
+}
+
+.Header-documentTitle {
+  flex: 0 0 50%;
+  text-align: center;
+}
+
+.Header.isUntitled .Header-documentTitle {
+  font-style: italic;
+}
+
+.Header-documentTitleButton {
+  border: 1px solid transparent;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.Header-documentTitleButton:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}

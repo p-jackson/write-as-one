@@ -1,0 +1,28 @@
+.ToggleButton {
+  font-size: 0.9em;
+  text-align: center;
+  cursor: pointer;
+  vertical-align: middle;
+  min-height: 44px;
+  padding: 0 1em;
+  border: 1px solid #00558b;
+  background: transparent;
+  color: #00558b;
+}
+
+.ToggleButton:hover {
+  border-color: #008ee8;
+  background: transparent;
+  color: #008ee8;
+}
+
+.ToggleButton.isToggled {
+  border: 1px solid transparent;
+  background: #00558b;
+  color: #fff;
+}
+
+.ToggleButton.isToggled:hover {
+  background: #004876;
+  color: #fff;
+}

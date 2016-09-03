@@ -1,0 +1,27 @@
+.Toolbar {
+  flex: 0 66px;
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 0 1px #000;
+  display: flex;
+  flex-direction: row;
+  padding: 0 1em;
+}
+
+.Toolbar-blockStyles {
+  padding-right: 0.5em;
+  margin-right: calc(0.5em - 1px);
+  border-right: 1px solid #ddd;
+}
+
+.Toolbar-button {
+  flex: 0;
+}
+
+.Toolbar-blockStyles .Toolbar-button {
+  margin-right: -1px;
+}
+
+.Toolbar-inlineStyles .Toolbar-button {
+  margin-right: 0.5em;
+}
