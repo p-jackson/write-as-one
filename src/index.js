@@ -31,7 +31,7 @@ function saveToLocalStorage(document) {
 }
 
 function logDelta(delta) {
-  console.log(delta)
+  console.log(JSON.stringify(delta, null, 2))
 }
 
 function render(document_) {

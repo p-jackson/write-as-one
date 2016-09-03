@@ -1,5 +1,12 @@
 import { EditorState, RichUtils, convertToRaw, convertFromRaw } from "draft-js"
 import { curry } from "ramda"
+import {
+  BlockAdded,
+  BlockRemoved,
+  BlockTypeChanged,
+  TextAdded,
+  TextRemoved
+} from "./Changes"
 
 
 export default class Document {
@@ -71,14 +78,38 @@ export function serialise(doc) {
 
 
 export function calcDelta(prev, next) {
-  // const prevBlockMap = prev.getEditorState().getCurrentContent().getBlockMap()
-  // const nextBlockMap = next.getEditorState().getCurrentContent().getBlockMap()
+  const changes = []
+  const prevContent = prev.getEditorState().getCurrentContent()
+  const nextContent = next.getEditorState().getCurrentContent()
 
   // Find the block that's different
-  // for (let key of prevBlockMap.keys()) {
-  //   prevBlockMap.get(key).is()console.log(key)
-  // }
-  return null
+  let index = -1
+  for (let key of prevContent.getBlockMap().keys()) {
+    index++
+    const prevBlock = prevContent.getBlockForKey(key)
+    const nextBlock = nextContent.getBlockForKey(key)
+    if (prevBlock !== nextBlock) {
+      if (!nextBlock)
+        changes.push(BlockRemoved(index))
+      else if (prevBlock.getLength() < nextBlock.getLength())
+        changes.push(TextAdded(index, prevBlock.getText(), nextBlock.getText()))
+      else if (prevBlock.getLength() > nextBlock.getLength())
+        changes.push(TextRemoved(index, prevBlock.getText(), nextBlock.getText()))
+      else if (prevBlock.getType() !== nextBlock.getType())
+        changes.push(BlockTypeChanged(index, nextBlock.getType()))
+    }
+  }
+
+  index = -1
+  for (let key of nextContent.getBlockMap().keys()) {
+    index++
+    if (!prevContent.getBlockForKey(key)) {
+      const newBlock = nextContent.getBlockForKey(key)
+      changes.push(BlockAdded(index, newBlock.getType(), newBlock.getText()))
+    }
+  }
+
+  return changes
 }
 
 
